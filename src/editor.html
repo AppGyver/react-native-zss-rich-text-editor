@@ -1064,12 +1064,14 @@
 			}
 
 			zss_editor.restorerange = function(){
-				var selection = window.getSelection();
-				selection.removeAllRanges();
-				var range = document.createRange();
-				range.setStart(zss_editor.currentSelection.startContainer, zss_editor.currentSelection.startOffset);
-				range.setEnd(zss_editor.currentSelection.endContainer, zss_editor.currentSelection.endOffset);
-				selection.addRange(range);
+				if (zss_editor.currentSelection) {
+					var selection = window.getSelection();
+					selection.removeAllRanges();
+					var range = document.createRange();
+					range.setStart(zss_editor.currentSelection.startContainer, zss_editor.currentSelection.startOffset);
+					range.setEnd(zss_editor.currentSelection.endContainer, zss_editor.currentSelection.endOffset);
+					selection.addRange(range);
+				}
 			}
 
 			zss_editor.getSelectedNode = function() {
@@ -1400,7 +1402,11 @@
 			}
 
 			zss_editor.insertHTML = function(html) {
-				document.execCommand('insertHTML', false, html);
+				//Workaround when adding image on initialize and cursor not selected
+				if (!document.execCommand('insertHTML', false, html)) {
+					$('#zss_editor_content').append(html);
+				}
+
 				zss_editor.enabledEditingItems();
 			}
 
@@ -1698,8 +1704,8 @@
 			}
 
 			#zss_editor_content {
-				padding-left: 10px;
-				padding-right: 10px;
+				padding-left: 0;
+				padding-right: 0;
 			}
 
 			div.zss_editor_title {
