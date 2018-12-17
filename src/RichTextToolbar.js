@@ -39,10 +39,6 @@ export default class RichTextToolbar extends Component {
     iconMap: PropTypes.object,
   };
 
-  static defaultProps = {
-    avoidKeyboard: true
-  };
-
   constructor(props) {
     super(props);
     const actions = this.props.actions ? this.props.actions : defaultActions;
@@ -55,7 +51,16 @@ export default class RichTextToolbar extends Component {
     };
   }
 
-  componentWillReceiveProps(newProps) {
+
+  _keyboardDidHide = () => {
+    this.setState({keyboardSpacing: 0})
+  }
+
+  _keyboardDidShow = (e) => {
+    this.setState({keyboardSpacing: e.endCoordinates.height})
+  }
+
+  componentDidReceiveProps(newProps) {
     const actions = newProps.actions ? newProps.actions : defaultActions;
     this.setState({
       actions,
@@ -74,7 +79,7 @@ export default class RichTextToolbar extends Component {
     } else {
       editor.registerToolbar((selectedItems) => this.setSelectedItems(selectedItems));
       this.setState({editor});
-      if (this.props.avoidKeyboard && Platform.OS !== "ios"){
+      if (Platform.OS !== "ios" && this.props.avoidKeyboard){
         this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this._keyboardDidShow);
         this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this._keyboardDidHide);
       }
@@ -140,20 +145,12 @@ export default class RichTextToolbar extends Component {
   }
 
   render() {
-    const { keyboardSpacing = 0 } = this.state
-    const { avoidKeyboard } = this.props
-    const rootStyles = [
-      { height: 50, backgroundColor: '#D3D3D3', alignItems: 'center' },
-      avoidKeyboard && Platform.OS !== "ios" ? { marginBottom: keyboardSpacing } : {},
-      this.props.style
-    ]
     return (
       <View
-          style={rootStyles}
+          style={[{height: 50, backgroundColor: '#D3D3D3', alignItems: 'center'},Platform.OS !== "ios" ?{ marginBottom: this.state.keyboardSpacing}: {}, this.props.style]}
       >
         <ListView
             horizontal
-            removeClippedSubviews={false}
             contentContainerStyle={{flexDirection: 'row'}}
             dataSource={this.state.ds}
             renderRow= {(row) => this._renderAction(row.action, row.selected)}
