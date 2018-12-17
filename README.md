@@ -5,7 +5,7 @@ A fully functional Rich Text Editor for both Android and iOS, based off the [ZSS
 ## Installation
 
 ```
-npm i --save react-native-zss-rich-text-editor
+npm i --save react-native-zss-rich-text-editor@https://github.com/arneson/react-native-zss-rich-text-editor#[version-tag]
 ```
 
 On Android, add the following to the end of your `android/app/build.gradle`
@@ -17,7 +17,7 @@ project.afterEvaluate {
 }
 ```
 
-Also, follow instructions [here](https://github.com/alinz/react-native-webview-bridge) to add the native `react-native-webview-bridge-updated` dependency.
+Also, follow instructions [here](https://github.com/alinz/react-native-webview-bridge) to add the native `react-native-webview-bridge` dependency.
 
 
 ## Usage
@@ -33,21 +33,42 @@ The editor component. Simply place this component in your view hierarchy to rece
 * `initialTitleHTML`
 
 	HTML that will be rendered in the title section as soon as the component loads.
+
 * `initialContentHTML`
 
 	HTML that will be rendered in the content section on load.
+
 * `titlePlaceholder`
 
 	Text that will be used as a placeholder when no text is present in the title section.
-* `contentPlaceholder `
+
+* `contentPlaceholder`
 	
 	Text that will be used as a placeholder when no text is present in the content section.
-* `customCSS `
 
-	Any custom CSS styles that you want to inject to the editor.
-* `editorInitializedCallback `
+* `editorInitializedCallback`
 
 	A function that will be called when the editor has been initialized.
+
+* `customCSS`
+
+	Any custom CSS styles that you want to inject to the editor.
+
+* `hiddenTitle`
+	
+	Whether the title should be displayed.
+	
+* `enableOnChange`
+
+	Enable the `CONTENT_CHANGE` event.
+	
+* `footerHeight`
+
+	Height of the footer.
+	
+* `contentInset`
+
+	Object representing your content inset.
 
 
 `RichTextEditor` also has methods that can be used on its `ref` to  set styling at the current selection or cursor position:
@@ -178,6 +199,10 @@ Other props supported by the `RichTextToolbar` component are:
 * `iconMap` 
 
 	`RichTextToolbar` comes with default icons for the default actions it renders. To override those, or to add icons for non-default actions, provide them in a dictionary to this prop.
+
+* `avoidKeyboard` (Android only)
+
+	Whether or not the toolbar should automatically move up as the keyboard is shown. This behavior is default on iOS. Default: `true`
 	
 
 ### Example Usage:
@@ -249,4 +274,4 @@ This is a set of consts of all supported actions. These will be passed in arrays
 
 ## Attribution
 
-`react-native-zss-rich-text-editor` is a wrapper around the amazing [ZSSRichTextEditor](https://github.com/nnhubbard/ZSSRichTextEditor/tree/master/ZSSRichTextEditor) project. It also communicates with the editor using (a tiny fork) of the awesome [react-native-webview-bridge](https://github.com/alinz/react-native-webview-bridge) project.
+`react-native-zss-rich-text-editor` is a wrapper around the amazing [ZSSRichTextEditor](https://github.com/nnhubbard/ZSSRichTextEditor/tree/master/ZSSRichTextEditor) project. It also communicates with the editor using the awesome [react-native-webview-bridge](https://github.com/alinz/react-native-webview-bridge) project.
