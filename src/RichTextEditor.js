@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import WebViewBridge from 'react-native-webview-bridge-updated';
+import WebViewBridge from 'react-native-webview-bridge';
 import {InjectedMessageHandler} from './WebviewMessageHandler';
 import {actions, messages} from './const';
 import {Modal, View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, PixelRatio, Keyboard, Dimensions} from 'react-native';
@@ -51,7 +51,7 @@ export default class RichTextEditor extends Component {
     this._selectedTextChangeListeners = [];
   }
 
-  componentWillMount() {
+  componentDidMount() {
     if(PlatformIOS) {
       this.keyboardEventListeners = [
         Keyboard.addListener('keyboardWillShow', this._onKeyboardWillShow),
@@ -66,7 +66,9 @@ export default class RichTextEditor extends Component {
   }
 
   componentWillUnmount() {
-    this.keyboardEventListeners.forEach((eventListener) => eventListener.remove());
+    if (this.keyboardEventListeners) {
+      this.keyboardEventListeners.forEach((eventListener) => eventListener.remove());
+    }
   }
 
   _onKeyboardWillShow(event) {
@@ -82,6 +84,9 @@ export default class RichTextEditor extends Component {
   }
 
   _onKeyboardWillHide(event) {
+    if (this.state.keyboardHeight !== 0) {
+      this.setEditorAvailableHeightBasedOnKeyboardHeight(0);
+    }
     this.setState({keyboardHeight: 0});
   }
 
@@ -97,7 +102,6 @@ export default class RichTextEditor extends Component {
   onBridgeMessage(str){
     try {
       const message = JSON.parse(str);
-
       switch (message.type) {
         case messages.TITLE_HTML_RESPONSE:
           if (this.titleResolve) {
@@ -290,10 +294,13 @@ export default class RichTextEditor extends Component {
   }
 
   render() {
+    const {keyboardHeight = 0} = this.state
+    const {bottomSpacing = 0} = this.props
     //in release build, external html files in Android can't be required, so they must be placed in the assets folder and accessed via uri
     const pageSource = PlatformIOS ? require('./editor.html') : { uri: 'file:///android_asset/editor.html' };
+    const rootStyle = PlatformIOS ? { flex: 1 } : { flex: 1, marginBottom: (keyboardHeight + bottomSpacing) }
     return (
-      <View style={{flex: 1}}>
+      <View style={rootStyle}>
         <WebViewBridge
           {...this.props}
           hideKeyboardAccessoryView={false}

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {ListView, View, TouchableOpacity, Image, StyleSheet} from 'react-native';
+import {ListView, View, TouchableOpacity, Image, StyleSheet, Keyboard, Platform} from 'react-native';
 import {actions} from './const';
 
 const defaultActions = [
@@ -39,6 +39,10 @@ export default class RichTextToolbar extends Component {
     iconMap: PropTypes.object,
   };
 
+  static defaultProps = {
+    avoidKeyboard: true
+  };
+
   constructor(props) {
     super(props);
     const actions = this.props.actions ? this.props.actions : defaultActions;
@@ -46,7 +50,8 @@ export default class RichTextToolbar extends Component {
       editor: undefined,
       selectedItems: [],
       actions,
-      ds: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}).cloneWithRows(this.getRows(actions, []))
+      ds: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}).cloneWithRows(this.getRows(actions, [])),
+      keyboardSpacing: 0
     };
   }
 
@@ -69,6 +74,19 @@ export default class RichTextToolbar extends Component {
     } else {
       editor.registerToolbar((selectedItems) => this.setSelectedItems(selectedItems));
       this.setState({editor});
+      if (this.props.avoidKeyboard && Platform.OS !== "ios"){
+        this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this._keyboardDidShow);
+        this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this._keyboardDidHide);
+      }
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.keyboardDidShowListener) {
+      this.keyboardDidShowListener.remove();
+    }
+    if (this.keyboardDidHideListener) {
+      this.keyboardDidHideListener.remove();
     }
   }
 
@@ -122,9 +140,16 @@ export default class RichTextToolbar extends Component {
   }
 
   render() {
+    const { keyboardSpacing = 0 } = this.state
+    const { avoidKeyboard } = this.props
+    const rootStyles = [
+      { height: 50, backgroundColor: '#D3D3D3', alignItems: 'center' },
+      avoidKeyboard && Platform.OS !== "ios" ? { marginBottom: keyboardSpacing } : {},
+      this.props.style
+    ]
     return (
       <View
-          style={[{height: 50, backgroundColor: '#D3D3D3', alignItems: 'center'}, this.props.style]}
+          style={rootStyles}
       >
         <ListView
             horizontal
