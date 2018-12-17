@@ -162,6 +162,7 @@ export default class RichTextToolbar extends Component {
       >
         <ListView
             horizontal
+            removeClippedSubviews={false}
             contentContainerStyle={{flexDirection: 'row'}}
             dataSource={this.state.ds}
             renderRow= {(row) => this._renderAction(row.action, row.selected)}
