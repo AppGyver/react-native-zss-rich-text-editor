@@ -297,7 +297,7 @@ export default class RichTextEditor extends Component {
     const {bottomSpacing = 0} = this.props
     //in release build, external html files in Android can't be required, so they must be placed in the assets folder and accessed via uri
     const pageSource = PlatformIOS ? require('./editor.html') : { uri: 'file:///android_asset/editor.html' };
-    const rootStyle = PlatformIOS ? { flex: 1 } : { flex: 1, marginBottom: (keyboardHeight + bottomSpacing) }
+    const rootStyle = { flex: 1 };
     return (
       <View style={rootStyle}>
         <WebViewBridge
