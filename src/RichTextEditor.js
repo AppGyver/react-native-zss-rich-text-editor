@@ -197,6 +197,10 @@ export default class RichTextEditor extends Component {
           });
           break;
         }
+        case messages.IMG_SELECTED: {
+          this.props.onImageSelected(message);
+          break;
+        }
       }
     } catch(e) {
       //alert('NON JSON MESSAGE');
@@ -545,6 +549,14 @@ export default class RichTextEditor extends Component {
 
   setPlatform() {
     this._sendAction(actions.setPlatform, Platform.OS);
+  }
+
+  removeImage(attributes) {
+    this._sendAction(actions.removeImage, attributes);
+  }
+
+  updateImage(attributes) {
+    this._sendAction(actions.updateImage, attributes);
   }
 
   async getTitleHtml() {

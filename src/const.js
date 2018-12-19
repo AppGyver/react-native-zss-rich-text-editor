@@ -52,7 +52,9 @@ export const actions = {
   init: 'ZSSS_INIT',
   setEditorHeight: 'SET_EDITOR_HEIGHT',
   setFooterHeight: 'SET_FOOTER_HEIGHT',
-  setPlatform: 'SET_PLATFORM'
+  setPlatform: 'SET_PLATFORM',
+  removeImage: 'REMOVE_IMAGE',
+  updateImage: 'UPDATE_IMAGE',
 };
 
 
@@ -69,5 +71,6 @@ export const messages = {
   CONTENT_CHANGE: 'CONTENT_CHANGE',
   SELECTED_TEXT_RESPONSE: 'SELECTED_TEXT_RESPONSE',
   LINK_TOUCHED: 'LINK_TOUCHED',
-  SELECTED_TEXT_CHANGED: 'SELECTED_TEXT_CHANGED'
+  SELECTED_TEXT_CHANGED: 'SELECTED_TEXT_CHANGED',
+  IMG_SELECTED: 'IMG_SELECTED',
 };

@@ -1308,17 +1308,23 @@
 
 			}//end
 
-			zss_editor.updateImage = function(url, alt) {
-
+			zss_editor.updateImage = function(attributes) {
 				zss_editor.restorerange();
-
 				if (zss_editor.currentEditingImage) {
 					var c = zss_editor.currentEditingImage;
-					c.attr('src', url);
-					c.attr('alt', alt);
+					c.attr(attributes);
+					zss_editor.enabledEditingItems();
 				}
-				zss_editor.enabledEditingItems();
 
+			}//end
+
+			zss_editor.removeImage = function() {
+				zss_editor.restorerange();
+				if (zss_editor.currentEditingImage) {
+					zss_editor.currentEditingImage.remove();
+					zss_editor.currentEditingImage = null;
+					zss_editor.enabledEditingItems();
+				}
 			}//end
 
 			zss_editor.updateImageBase64String = function(imageBase64String, alt) {
@@ -1683,7 +1689,26 @@
 
 			//end
 		</script>
+		<script type="text/javascript">
+		$(document).ready(function() {
+				$(document).on('click', 'img', function(){
+					var attrs = {};
 
+					$.each( $(this)[0].attributes, function ( index, attribute ) {
+							attrs[attribute.name] = attribute.value;
+					} );
+
+					zss_editor.currentEditingImage = $(this);
+
+					WebViewBridge.send(JSON.stringify({type: 'IMG_SELECTED', attrs: attrs }));
+				});
+		});
+		</script>
+		<script type="text/javascript">
+			$(document).ready(function() {
+				$('#zss_editor_content').css('min-height', $(window).height());
+			});
+		</script>
 		<style type="text/css">
 			/* Default ZSSRichTextEditor Styling */
 			* {

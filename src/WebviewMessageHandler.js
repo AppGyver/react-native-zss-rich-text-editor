@@ -3,7 +3,6 @@ import {actions, messages} from './const';
 export const InjectedMessageHandler = `
   if (WebViewBridge) {
     WebViewBridge.onMessage = function (message) {
-
       const action = JSON.parse(message);
 
       switch(action.type) {
@@ -169,6 +168,12 @@ export const InjectedMessageHandler = `
           break;
         case '${actions.setPlatform}':
           zss_editor.setPlatform(action.data);
+          break;
+        case '${actions.removeImage}':
+          zss_editor.removeImage();
+          break;
+        case '${actions.updateImage}':
+          zss_editor.updateImage(action.data);
           break;
       }
     };
