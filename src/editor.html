@@ -1311,11 +1311,10 @@
 			zss_editor.updateImage = function(attributes) {
 				zss_editor.restorerange();
 				if (zss_editor.currentEditingImage) {
-					var c = zss_editor.currentEditingImage;
-					c.attr(attributes);
-					zss_editor.enabledEditingItems();
+					zss_editor.currentEditingImage.attr(attributes);
+					zss_editor.currentEditingImage = null;
 				}
-
+				zss_editor.enabledEditingItems();
 			}//end
 
 			zss_editor.removeImage = function() {
@@ -1323,8 +1322,8 @@
 				if (zss_editor.currentEditingImage) {
 					zss_editor.currentEditingImage.remove();
 					zss_editor.currentEditingImage = null;
-					zss_editor.enabledEditingItems();
 				}
+				zss_editor.enabledEditingItems();
 			}//end
 
 			zss_editor.updateImageBase64String = function(imageBase64String, alt) {
@@ -1595,7 +1594,7 @@
 						}
 
 					} else {
-						zss_editor.currentEditingImage = null;
+						// zss_editor.currentEditingImage = null;
 					}
 
 				}

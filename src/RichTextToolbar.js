@@ -214,7 +214,6 @@ export default class RichTextToolbar extends Component {
           this.props.onPressAddImage();
         }
         break;
-        break;
     }
   }
 }
