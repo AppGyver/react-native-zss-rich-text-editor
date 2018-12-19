@@ -778,30 +778,6 @@
 				return multi_parser.output.join('');
 			}
 
-			function getMirrorInfo(element) {
-				if (element.mirrorInfo) {
-					return element.mirrorInfo;
-				}
-
-				var div = document.createElement('div');
-				var style = div.style;
-				var hidden = 'hidden';
-				var focusOut = 'focusout';
-				style.whiteSpace = 'pre-wrap';
-				style.wordWrap = 'break-word';
-				style.position = 'absolute';
-				style.visibility = hidden;
-				style.overflow = hidden;
-				document.body.appendChild(div);
-				element.mirrorInfo = { div: div, span: document.createElement('span') };
-				element.addEventListener(focusOut, function cleanup() {
-					delete element.mirrorInfo;
-					document.body.removeChild(div);
-					element.removeEventListener(focusOut, cleanup);
-				});
-				return element.mirrorInfo;
-			}
-
 			/*!
 			 *
 			 * ZSSRichTextEditor v0.5.2
@@ -1035,6 +1011,21 @@
 				});
 			}
 
+			function deleteEmptyNodes(nodes) {
+				nodes.forEach(function(node) {
+					var els = document.querySelectorAll(node),
+					el;
+					for (var i = 0; i < els.length; i++) {
+							el = els[i];
+							//if there is no first child
+							if (!el.firstChild) {
+									//remove the node
+									el.parentNode.removeChild(el)
+							}
+					}
+				})
+			}
+
 			zss_editor.setTitlePlaceholder = function(placeholder) {
 				setPlaceholder('zss_editor_title', placeholder);
 			}
@@ -1049,24 +1040,16 @@
 			}
 
 			zss_editor.getCaretYPosition = function() {
-				var selection = window.getSelection();
-				var range = selection.getRangeAt(0);
-				var container = range.endContainer;
-				var selectedNode = container.nodeType === 3 ? container.parentNode : container;
-				var position = selectedNode.selectionEnd;
-				var _a = getMirrorInfo(selectedNode);
-				var div = _a.div;
-				var span = _a.span;
-				var content = selectedNode.textContent.substring(0, position);
-
-				div.textContent = content;
-				span.textContent = (selectedNode.textContent.substring(position)) || '.';
-				div.appendChild(span);
-
-				var rect = selectedNode.getBoundingClientRect();
-				var top = span.offsetTop - selectedNode.scrollTop + rect.top;
-
-				return top;
+				var sel = window.getSelection();
+				// Next line is comented to prevent deselecting selection. It looks like work but if there are any issues will appear then uconmment it as well as code above.
+				//sel.collapseToStart();
+				var range = sel.getRangeAt(0);
+				var span = document.createElement('span');// something happening here preventing selection of elements
+				range.collapse(false);
+				range.insertNode(span);
+				var topPosition = span.offsetTop;
+				span.parentNode.removeChild(span);
+				return topPosition;
 			}
 
 			zss_editor.calculateEditorHeightWithCaretPosition = function() {
@@ -1124,13 +1107,30 @@
 			};
 
 			zss_editor.setBold = function() {
+				if ('android' === zss_editor.platform) {
+					document.execCommand('formatBlock', false, '<h6>');
+					zss_editor.setParagraph();
+				}
+
 				document.execCommand('bold', false, null);
+				$('#zss_editor_content').focus();
+
 				zss_editor.enabledEditingItems();
+
+				deleteEmptyNodes(['b', 'i', 'p', 'h6']);
 			}
 
 			zss_editor.setItalic = function() {
+				if ('android' === zss_editor.platform) {
+					document.execCommand('formatBlock', false, '<h6>');
+					zss_editor.setParagraph();
+				}
+
 				document.execCommand('italic', false, null);
 				zss_editor.enabledEditingItems();
+				$('#zss_editor_content').focus();
+
+				deleteEmptyNodes(['b', 'i', 'p', 'h6']);
 			}
 
 			zss_editor.setSubscript = function() {
@@ -1311,7 +1311,9 @@
 			zss_editor.updateImage = function(attributes) {
 				zss_editor.restorerange();
 				if (zss_editor.currentEditingImage) {
-					zss_editor.currentEditingImage.attr(attributes);
+					zss_editor.currentEditingImage.setAttribute('src', attributes.src);
+					zss_editor.currentEditingImage.setAttribute('path', attributes.path);
+					zss_editor.currentEditingImage.setAttribute('uri', attributes.uri);
 					zss_editor.currentEditingImage = null;
 				}
 				zss_editor.enabledEditingItems();
@@ -1390,7 +1392,7 @@
 				zss_editor.restorerange();
 				var imageContainer = $('<div><img></div>');
 				imageContainer.find('img').attr(attributes);
-				zss_editor.insertHTML('<br>' + imageContainer.html() + '<br>');
+				zss_editor.insertHTML('<br>' + imageContainer.html() + '<br> &nbsp;');
 				zss_editor.enabledEditingItems();
 			}
 
@@ -1503,6 +1505,7 @@
 				return document.queryCommandState(commandName);
 			}
 
+			var tapedTwice = false;
 			zss_editor.enabledEditingItems = function(e) {
 
 				console.log('enabledEditingItems');
@@ -1587,14 +1590,26 @@
 					}
 					// Image
 					if (nodeName == 'img') {
-						zss_editor.currentEditingImage = t;
-						items.push('image:'+t.attr('src'));
-						if (t.attr('alt') !== undefined) {
-							items.push('image-alt:'+t.attr('alt'));
-						}
+						if (!zss_editor.isDragging) {
+							var attributes = e.target.attributes;
+							zss_editor.currentEditingImage = e.target;
 
+							if(!tapedTwice) {
+									tapedTwice = true;
+									setTimeout( function() { tapedTwice = false; }, 300 );
+									return false;
+							}
+
+							var attrs = {
+								uri: attributes.uri && 'undefined' !== attributes.uri.value ? attributes.uri.value : undefined,
+								path: attributes.path && 'undefined' !== attributes.path.value ? attributes.path.value : undefined,
+								src: attributes.src && 'undefined' !== attributes.src.value ? attributes.src.value : undefined
+							};
+
+							WebViewBridge.send(JSON.stringify({type: 'IMG_SELECTED', attrs: attrs }));
+						}
 					} else {
-						// zss_editor.currentEditingImage = null;
+						zss_editor.currentEditingImage = null;
 					}
 
 				}
@@ -1687,21 +1702,6 @@
 			}
 
 			//end
-		</script>
-		<script type="text/javascript">
-		$(document).ready(function() {
-				$(document).on('click', 'img', function(){
-					var attrs = {};
-
-					$.each( $(this)[0].attributes, function ( index, attribute ) {
-							attrs[attribute.name] = attribute.value;
-					} );
-
-					zss_editor.currentEditingImage = $(this);
-
-					WebViewBridge.send(JSON.stringify({type: 'IMG_SELECTED', attrs: attrs }));
-				});
-		});
 		</script>
 		<script type="text/javascript">
 			$(document).ready(function() {
