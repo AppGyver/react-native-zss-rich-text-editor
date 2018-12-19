@@ -10,7 +10,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "react-native-webview-bridge": "0.40.1",
-    "lodash.isequal": "4.5.0",
+    "lodash.isequal": "4.5.0"
   },
   "peerDependencies": {
     "react": "*",
