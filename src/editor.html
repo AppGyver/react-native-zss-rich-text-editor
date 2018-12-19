@@ -920,7 +920,7 @@
 				zss_editor.focusTitle();
 
 				setTimeout(function() {
-					WebViewBridge.send(JSON.stringify({type: 'ZSS_INITIALIZED'}))
+					WebViewBridge.send(JSON.stringify({type: 'ZSS_INITIALIZED'}));
 				}, 20);
 
 			}//end
@@ -1013,16 +1013,9 @@
 
 			function deleteEmptyNodes(nodes) {
 				nodes.forEach(function(node) {
-					var els = document.querySelectorAll(node),
-					el;
-					for (var i = 0; i < els.length; i++) {
-							el = els[i];
-							//if there is no first child
-							if (!el.firstChild) {
-									//remove the node
-									el.parentNode.removeChild(el)
-							}
-					}
+					$(node).filter(function() {
+					     return $.trim($(this).html()).length <= 0;
+					}).remove();
 				})
 			}
 
@@ -1113,11 +1106,12 @@
 				}
 
 				document.execCommand('bold', false, null);
-				$('#zss_editor_content').focus();
+
+				if ('android' === zss_editor.platform) {
+					deleteEmptyNodes(['i', 'b', 'i', 'p', 'h6']);
+				}
 
 				zss_editor.enabledEditingItems();
-
-				deleteEmptyNodes(['b', 'i', 'p', 'h6']);
 			}
 
 			zss_editor.setItalic = function() {
@@ -1127,10 +1121,12 @@
 				}
 
 				document.execCommand('italic', false, null);
-				zss_editor.enabledEditingItems();
-				$('#zss_editor_content').focus();
 
-				deleteEmptyNodes(['b', 'i', 'p', 'h6']);
+				if ('android' === zss_editor.platform) {
+					deleteEmptyNodes(['i', 'b', 'i', 'p', 'h6']);
+				}
+
+				zss_editor.enabledEditingItems();
 			}
 
 			zss_editor.setSubscript = function() {
@@ -1392,7 +1388,7 @@
 				zss_editor.restorerange();
 				var imageContainer = $('<div><img></div>');
 				imageContainer.find('img').attr(attributes);
-				zss_editor.insertHTML('<br>' + imageContainer.html() + '<br> &nbsp;');
+				zss_editor.insertHTML('<br>' + imageContainer.html() + '<br><br>');
 				zss_editor.enabledEditingItems();
 			}
 
@@ -1609,7 +1605,7 @@
 							WebViewBridge.send(JSON.stringify({type: 'IMG_SELECTED', attrs: attrs }));
 						}
 					} else {
-						zss_editor.currentEditingImage = null;
+						// zss_editor.currentEditingImage = null;
 					}
 
 				}
@@ -1705,7 +1701,9 @@
 		</script>
 		<script type="text/javascript">
 			$(document).ready(function() {
-				$('#zss_editor_content').css('min-height', $(window).height());
+				setTimeout(function() {
+					$('#zss_editor_content').css('min-height', $(window).height());
+				}, 500);
 			});
 		</script>
 		<style type="text/css">
