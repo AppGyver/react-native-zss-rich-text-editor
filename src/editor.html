@@ -1723,7 +1723,9 @@
 		<script type="text/javascript">
 			$(document).ready(function() {
 				setTimeout(function() {
-					$('#zss_editor_content').css('min-height', $(window).height());
+					let windowHeight = $(window).height();
+					$('#zss_editor_content').css('min-height', windowHeight);
+					$('#zss_editor_content').css('height', windowHeight);
 				}, 500);
 			});
 		</script>
