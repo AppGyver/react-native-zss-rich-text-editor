@@ -1711,6 +1711,9 @@
 			}
 
 			zss_editor.setEditorHeight = function(editorHeight) {
+				let windowHeight = $(window).height();
+				$('#zss_editor_content').css('height', windowHeight);
+				$('#zss_editor_content').css('min-height', windowHeight);
 				zss_editor.editorHeight = editorHeight;
 			}
 
