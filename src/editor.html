@@ -1711,9 +1711,6 @@
 			}
 
 			zss_editor.setEditorHeight = function(editorHeight) {
-				let windowHeight = $(window).height();
-				$('#zss_editor_content').css('height', windowHeight);
-				$('#zss_editor_content').css('min-height', windowHeight);
 				zss_editor.editorHeight = editorHeight;
 			}
 
@@ -1728,8 +1725,7 @@
 				setTimeout(function() {
 					let windowHeight = $(window).height();
 					$('#zss_editor_content').css('min-height', windowHeight);
-					$('#zss_editor_content').css('height', windowHeight);
-				}, 500);
+				}, 1000);
 			});
 		</script>
 		<style type="text/css">
@@ -1780,7 +1776,7 @@
 				height: 100%;
 				-webkit-overflow-scrolling: touch;
 				overflow:auto;
-
+				margin-bottom: 50px;
 			}
 
 			#zss_editor_content {
