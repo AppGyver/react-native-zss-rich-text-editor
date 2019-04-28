@@ -1001,9 +1001,9 @@
 				if (maxOffsetY < 0)
 					maxOffsetY = 0;
 
-				if (offsetY > maxOffsetY)
+				if (offsetY > maxOffsetY && zss_editor.platform === 'android')
 				{
-					// window.scrollTo(0, maxOffsetY);
+					window.scrollTo(0, maxOffsetY);
 				}
 
 				zss_editor.setScrollPosition();
