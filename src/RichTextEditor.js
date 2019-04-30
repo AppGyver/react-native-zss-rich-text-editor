@@ -12,6 +12,7 @@ const injectScript = `
 `;
 
 const PlatformIOS = Platform.OS === 'ios';
+const minHeight = 40;
 
 export default class RichTextEditor extends Component {
   static propTypes = {
@@ -24,12 +25,16 @@ export default class RichTextEditor extends Component {
     hiddenTitle: PropTypes.bool,
     enableOnChange: PropTypes.bool,
     footerHeight: PropTypes.number,
-    contentInset: PropTypes.object
+    contentInset: PropTypes.object,
+    autoHeight: PropTypes.bool,
+    minHeight: PropTypes.number
   };
 
   static defaultProps = {
     contentInset: {},
-    style: {}
+    style: {},
+    autoHeight: false,
+    minHeight: minHeight,
   };
 
   constructor(props) {
@@ -39,6 +44,7 @@ export default class RichTextEditor extends Component {
     this.onBridgeMessage = this.onBridgeMessage.bind(this);
     this._onKeyboardWillShow = this._onKeyboardWillShow.bind(this);
     this._onKeyboardWillHide = this._onKeyboardWillHide.bind(this);
+    this.onUpdateEditorHeight = this.onUpdateEditorHeight.bind(this);
     this.state = {
       selectionChangeListeners: [],
       onChange: [],
@@ -46,7 +52,8 @@ export default class RichTextEditor extends Component {
       linkInitialUrl: '',
       linkTitle: '',
       linkUrl: '',
-      keyboardHeight: 0
+      keyboardHeight: 0,
+      height: props.minHeight || minHeight,
     };
     this._selectedTextChangeListeners = [];
   }
@@ -93,14 +100,21 @@ export default class RichTextEditor extends Component {
 
   setEditorAvailableHeightBasedOnKeyboardHeight(keyboardHeight) {
     const {top = 0, bottom = 0} = this.props.contentInset;
-    const {marginTop = 0, marginBottom = 0, height = undefined} = this.props.style;
+    const {marginTop = 0, marginBottom = 0} = this.props.style;
     const spacing = marginTop + marginBottom + top + bottom;
 
-    let editorAvailableHeight = Dimensions.get('window').height - keyboardHeight - spacing;
-    if (height) {
-	    editorAvailableHeight = height - keyboardHeight - spacing;
+    const editorAvailableHeight = Dimensions.get('window').height - (keyboardHeight * 2) - spacing;
+
+    this.setEditorHeight(editorAvailableHeight);
+  }
+
+  onUpdateEditorHeight(height) {
+    const { height: oldHeight } = this.state;
+    const newHeight = Math.max(height, this.props.minHeight || minHeight);
+
+    if (this.props.autoHeight && newHeight !== oldHeight) {
+      this.setState({ height: newHeight });
     }
-    this.setEditorHeight(editorAvailableHeight - 130);
   }
 
   onBridgeMessage(str){
@@ -177,6 +191,12 @@ export default class RichTextEditor extends Component {
         case messages.SCROLL:
           this.webviewBridge.setNativeProps({contentOffset: {y: message.data}});
           break;
+        case messages.HEIGHT_CHANGED:
+          this.onUpdateEditorHeight(message.data);
+          break;
+        case messages.CONTENT_BLUR:
+        this.contentBlurHandler && this.contentBlurHandler();
+        break;
         case messages.TITLE_FOCUSED:
           this.titleFocusHandler && this.titleFocusHandler();
           break;
@@ -306,6 +326,8 @@ export default class RichTextEditor extends Component {
     const {bottomSpacing = 0} = this.props
     //in release build, external html files in Android can't be required, so they must be placed in the assets folder and accessed via uri
     const pageSource = PlatformIOS ? require('./editor.html') : { uri: 'file:///android_asset/editor.html' };
+    const isAutoHeight = !!this.props.autoHeight;
+
     const rootStyle = { flex: 1 };
     return (
       <View style={rootStyle}>
@@ -318,6 +340,8 @@ export default class RichTextEditor extends Component {
           injectedJavaScript={injectScript}
           source={pageSource}
           onLoad={() => this.init()}
+          scrollEnabled={!isAutoHeight}
+          style={[this.props.style || {}, { height: this.state.height }]}
         />
         {this._renderLinkModal()}
       </View>
@@ -627,7 +651,10 @@ export default class RichTextEditor extends Component {
 
   setContentFocusHandler(callbackHandler) {
     this.contentFocusHandler = callbackHandler;
-    this._sendAction(actions.setContentFocusHandler);
+  }
+
+  setContentBlurHandler(callbackHandler) {
+    this.contentBlurHandler = callbackHandler;
   }
 
   addSelectedTextChangeListener(listener) {

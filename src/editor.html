@@ -912,6 +912,7 @@
 					console.log('selectionchange');
 					zss_editor.calculateEditorHeightWithCaretPosition();
 					zss_editor.setScrollPosition();
+					zss_editor.updateWindowHeight();
 					zss_editor.enabledEditingItems(e);
 					notifyIfSelectedTextHasChanged();
 				});
@@ -921,6 +922,7 @@
 					zss_editor.isDragging = true;
 					zss_editor.updateScrollOffset = true;
 					zss_editor.setScrollPosition();
+					zss_editor.updateWindowHeight();
 					zss_editor.enabledEditingItems(e);
 				});
 				$(window).on('touchstart', function(e) {
@@ -941,7 +943,9 @@
 				whenPastingInsertAsPlainText('zss_editor_title');
 				whenPastingInsertAsPlainText('zss_editor_content');
 
-				zss_editor.focusTitle();
+				zss_editor.hideTitle();
+				zss_editor.setContentFocusHandler();
+				zss_editor.setContentBlurHandler();
 
 				setTimeout(function() {
 					WebViewBridge.send(JSON.stringify({type: 'ZSS_INITIALIZED'}));
@@ -1018,6 +1022,11 @@
 			zss_editor.setScrollPosition = function() {
 				var position = window.pageYOffset;
 				WebViewBridge.send(JSON.stringify({type: 'SCROLL', data: position}));
+			}
+
+			zss_editor.updateWindowHeight = function() {
+				const newHeight = document.body.offsetHeight;
+				WebViewBridge.send(JSON.stringify({type: 'HEIGHT_CHANGED', data: newHeight}));
 			}
 
 			function setPlaceholder(editorId, placeholder) {
@@ -1695,7 +1704,12 @@
 
 			function addFocusEvent(editorId, callbackHandler) {
 				var editor = $('#' + editorId);
-				editor.focus(callbackHandler);
+				editor.on('focus', callbackHandler);
+			}
+
+			function addBlurEvent(editorId, callbackHandler) {
+				var editor = $('#' + editorId);
+				editor.on('blur', callbackHandler);
 			}
 
 			zss_editor.setTitleFocusHandler = function() {
@@ -1717,6 +1731,13 @@
 			zss_editor.setPlatform = function(platform) {
 				zss_editor.platform = platform;
 			}
+
+			zss_editor.setContentBlurHandler = function() {
+				addBlurEvent('zss_editor_content', function() {
+					WebViewBridge.send(JSON.stringify({type: 'CONTENT_BLUR'}))
+				});
+			}
+
 
 			//end
 		</script>
@@ -1811,6 +1832,7 @@
 				border: none;
 				height: 1px;
 				background-color: #e7e7e7;
+				display: none;
 			}
 
 			#separatorContainer {
