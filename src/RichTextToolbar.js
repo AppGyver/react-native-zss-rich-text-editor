@@ -150,10 +150,10 @@ export default class RichTextToolbar extends Component {
 
   render() {
     const { keyboardSpacing = 0 } = this.state
-    const { avoidKeyboard } = this.props
+    const { avoidKeyboard, keyboardOpened } = this.props
     const rootStyles = [
       { backgroundColor: '#D3D3D3', alignItems: 'center' },
-      avoidKeyboard && Platform.OS !== "ios" ? { marginBottom: keyboardSpacing - 50 } : {},
+      (avoidKeyboard && Platform.OS !== "ios" && keyboardOpened) ? { marginBottom: keyboardSpacing - 50 } : {},
       this.props.style
     ]
     return (
