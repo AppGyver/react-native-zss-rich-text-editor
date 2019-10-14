@@ -1021,7 +1021,9 @@
 
 			zss_editor.setScrollPosition = function() {
 				var position = window.pageYOffset;
-				WebViewBridge.send(JSON.stringify({type: 'SCROLL', data: position}));
+				var carretPosition = zss_editor.getCaretYPosition();
+				let data = { position, carretPosition }
+				WebViewBridge.send(JSON.stringify({type: 'SCROLL', data }));
 			}
 
 			zss_editor.updateWindowHeight = function() {
@@ -1758,6 +1760,10 @@
 				setTimeout(function() {
 					let windowHeight = $(window).height();
 					$('#zss_editor_content').css('min-height', windowHeight);
+
+					if(zss_editor.platform === 'ios') {
+						$('body').css('padding-top', '0px')
+					}
 				}, 1000);
 			});
 		</script>
@@ -1781,7 +1787,7 @@
 			body {
 				padding-left:10px;
 				padding-right:10px;
-				padding-top: 0px;
+				padding-top: 20px;
 				padding-bottom: 0px;
 				overflow-y: scroll;
 				-webkit-overflow-scrolling: touch;
@@ -1820,7 +1826,8 @@
 			div.zss_editor_title {
 				font-family: 'Helvetica Neue Light', sans-serif;
 				font-size: 23px;
-				line-height: 31px;
+				height: 0;
+				display: none;
 				color: #2d4150;
 			}
 

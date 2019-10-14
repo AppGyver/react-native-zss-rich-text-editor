@@ -44,7 +44,6 @@ export default class RichTextEditor extends Component {
     this.onBridgeMessage = this.onBridgeMessage.bind(this);
     this._onKeyboardWillShow = this._onKeyboardWillShow.bind(this);
     this._onKeyboardWillHide = this._onKeyboardWillHide.bind(this);
-    this.onUpdateEditorHeight = this.onUpdateEditorHeight.bind(this);
     this.state = {
       selectionChangeListeners: [],
       onChange: [],
@@ -56,6 +55,8 @@ export default class RichTextEditor extends Component {
       height: props.minHeight || minHeight,
     };
     this._selectedTextChangeListeners = [];
+    this.carretPosition = 0;
+    this.lastHeight = 0;
   }
 
   componentDidMount() {
@@ -70,6 +71,7 @@ export default class RichTextEditor extends Component {
         Keyboard.addListener('keyboardDidHide', this._onKeyboardWillHide)
       ];
     }
+
   }
 
   componentWillUnmount() {
@@ -108,12 +110,22 @@ export default class RichTextEditor extends Component {
     this.setEditorHeight(editorAvailableHeight);
   }
 
-  onUpdateEditorHeight(height) {
-    const { height: oldHeight } = this.state;
+  onUpdateEditorHeight = (height) => {
+    const { height: oldHeight, keyboardHeight } = this.state;
     const newHeight = Math.max(height, this.props.minHeight || minHeight);
+
+    if (this.lastHeight === newHeight) {
+        this.scrollView.scrollToEnd();
+        this.lastHeight = 0;
+    }
 
     if (this.props.autoHeight && newHeight !== oldHeight) {
       this.setState({ height: newHeight });
+      this.lastHeight = newHeight;
+    }
+
+    if (this.props.minHeight > this.carretPosition) {
+        this.scrollView.scrollTo({ y: this.carretPosition - keyboardHeight });
     }
   }
 
@@ -189,7 +201,8 @@ export default class RichTextEditor extends Component {
           console.log('FROM ZSS', message.data);
           break;
         case messages.SCROLL:
-          this.webviewBridge.setNativeProps({contentOffset: {y: message.data}});
+          this.carretPosition = message.data.carretPosition;
+          this.webviewBridge.setNativeProps({contentOffset: {y: message.data.position}});
           break;
         case messages.HEIGHT_CHANGED:
           this.onUpdateEditorHeight(message.data);
@@ -233,6 +246,8 @@ export default class RichTextEditor extends Component {
   }
 
   _renderLinkModal() {
+    if (!this.state.showLinkDialog) return null;
+
     return (
         <Modal
             animationType={"fade"}
@@ -330,7 +345,7 @@ export default class RichTextEditor extends Component {
 
     const rootStyle = { flex: 1 };
     return (
-      <ScrollView style={rootStyle}>
+      <ScrollView style={rootStyle} ref={(r) => {this.scrollView = r}}>
         <WebViewBridge
           hideKeyboardAccessoryView={false}
           keyboardDisplayRequiresUserAction={false}
@@ -341,7 +356,7 @@ export default class RichTextEditor extends Component {
           source={pageSource}
           onLoad={() => this.init()}
           scrollEnabled={false}
-          style={[this.props.style || {}, { height: this.state.height }]}
+          style={[this.props.style || {}, { height: this.state.height}]}
         />
         {this._renderLinkModal()}
       </ScrollView>
