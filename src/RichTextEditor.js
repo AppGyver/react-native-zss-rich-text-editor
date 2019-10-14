@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import WebViewBridge from 'react-native-webview-bridge';
 import {InjectedMessageHandler} from './WebviewMessageHandler';
 import {actions, messages} from './const';
-import {Modal, View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, PixelRatio, Keyboard, Dimensions} from 'react-native';
+import {Modal, View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, PixelRatio, Keyboard, Dimensions, ScrollView} from 'react-native';
 
 const injectScript = `
   (function () {
@@ -330,7 +330,7 @@ export default class RichTextEditor extends Component {
 
     const rootStyle = { flex: 1 };
     return (
-      <View style={rootStyle}>
+      <ScrollView style={rootStyle}>
         <WebViewBridge
           hideKeyboardAccessoryView={false}
           keyboardDisplayRequiresUserAction={false}
@@ -340,11 +340,11 @@ export default class RichTextEditor extends Component {
           injectedJavaScript={injectScript}
           source={pageSource}
           onLoad={() => this.init()}
-          scrollEnabled={!isAutoHeight}
+          scrollEnabled={false}
           style={[this.props.style || {}, { height: this.state.height }]}
         />
         {this._renderLinkModal()}
-      </View>
+      </ScrollView>
     );
   }
 
