@@ -909,7 +909,6 @@
 				clearHtmlIfTextIsEmpty('zss_editor_content');
 
 				$(document).on('selectionchange',function(e){
-					console.log('selectionchange');
 					zss_editor.calculateEditorHeightWithCaretPosition();
 					zss_editor.setScrollPosition();
 					zss_editor.updateWindowHeight();
@@ -1125,7 +1124,7 @@
 				}
 
 				if (newPos) {
-					window.scrollTo(0, newPos);
+					// window.scrollTo(0, newPos);
 				}
 			}
 
@@ -1434,6 +1433,10 @@
 				imageContainer.find('img').attr(attributes);
 				zss_editor.insertHTML('<br>' + imageContainer.html() + '<br><br>');
 				zss_editor.enabledEditingItems();
+
+				setTimeout(function() {
+					zss_editor.updateWindowHeight();
+				}, 500);
 			}
 
 			zss_editor.insertImageBase64String = function(imageBase64String, alt) {

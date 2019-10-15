@@ -175,6 +175,9 @@ export const InjectedMessageHandler = `
         case '${actions.updateImage}':
           zss_editor.updateImage(action.data);
           break;
+        case '${actions.updateWindowHeight}':
+          zss_editor.updateWindowHeight();
+          break;
       }
     };
   }

@@ -57,6 +57,8 @@ export default class RichTextEditor extends Component {
     this._selectedTextChangeListeners = [];
     this.carretPosition = 0;
     this.lastHeight = 0;
+    this.touchY = 0;
+    this.oldTouchPosition = 0;
   }
 
   componentDidMount() {
@@ -71,7 +73,7 @@ export default class RichTextEditor extends Component {
         Keyboard.addListener('keyboardDidHide', this._onKeyboardWillHide)
       ];
     }
-
+    global.editor = this;
   }
 
   componentWillUnmount() {
@@ -115,17 +117,19 @@ export default class RichTextEditor extends Component {
     const newHeight = Math.max(height, this.props.minHeight || minHeight);
 
     if (this.lastHeight === newHeight) {
-        this.scrollView.scrollToEnd();
+        this.scrollView.scrollTo({ y: this.carretPosition });
         this.lastHeight = 0;
     }
 
     if (this.props.autoHeight && newHeight !== oldHeight) {
-      this.setState({ height: newHeight });
-      this.lastHeight = newHeight;
+        this.setState({ height: newHeight });
+        this.lastHeight = newHeight;
     }
 
-    if (this.props.minHeight > this.carretPosition) {
-        this.scrollView.scrollTo({ y: this.carretPosition - keyboardHeight });
+    const touchPosition = this.carretPosition;
+    if (this.props.minHeight > touchPosition && touchPosition !== this.oldTouchPosition) {
+        this.scrollView.scrollTo({ y: touchPosition - 200 });
+        this.oldTouchPosition = touchPosition;
     }
   }
 
@@ -345,7 +349,13 @@ export default class RichTextEditor extends Component {
 
     const rootStyle = { flex: 1 };
     return (
-      <ScrollView style={rootStyle} ref={(r) => {this.scrollView = r}}>
+      <ScrollView
+          style={rootStyle}
+          ref={(r) => {this.scrollView = r}}
+          onTouchStart={(e) => {
+              this.touchY = e.nativeEvent.locationY;
+          }}
+      >
         <WebViewBridge
           hideKeyboardAccessoryView={false}
           keyboardDisplayRequiresUserAction={false}
@@ -601,6 +611,10 @@ export default class RichTextEditor extends Component {
 
   updateImage(attributes) {
     this._sendAction(actions.updateImage, attributes);
+  }
+
+  updateWindowHeight() {
+    this._sendAction(actions.updateWindowHeight);
   }
 
   async getTitleHtml() {
