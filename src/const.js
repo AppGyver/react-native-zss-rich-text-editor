@@ -55,6 +55,7 @@ export const actions = {
   setPlatform: 'SET_PLATFORM',
   removeImage: 'REMOVE_IMAGE',
   updateImage: 'UPDATE_IMAGE',
+  updateWindowHeight: 'UPDATE_WINDOW_HEIGHT',
 };
 
 

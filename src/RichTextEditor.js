@@ -73,7 +73,6 @@ export default class RichTextEditor extends Component {
         Keyboard.addListener('keyboardDidHide', this._onKeyboardWillHide)
       ];
     }
-    global.editor = this;
   }
 
   componentWillUnmount() {
@@ -194,6 +193,11 @@ export default class RichTextEditor extends Component {
           this.props.enableOnChange && this.enableOnChange();
 
           this.props.editorInitializedCallback && this.props.editorInitializedCallback();
+
+          const that = this;
+          setTimeout(() => {
+              that.updateWindowHeight();
+          }, 1000)
 
           break;
         case messages.LINK_TOUCHED:
