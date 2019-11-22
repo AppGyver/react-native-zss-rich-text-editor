@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {ListView, View, TouchableOpacity, Image, StyleSheet, Keyboard, Platform} from 'react-native';
-import {actions} from './const';
+import { FlatList, View, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { actions } from './const';
 
 const defaultActions = [
   actions.insertImage,
@@ -39,10 +39,6 @@ export default class RichTextToolbar extends Component {
     iconMap: PropTypes.object,
   };
 
-  static defaultProps = {
-    avoidKeyboard: true
-  };
-
   constructor(props) {
     super(props);
     const actions = this.props.actions ? this.props.actions : defaultActions;
@@ -50,30 +46,20 @@ export default class RichTextToolbar extends Component {
       editor: undefined,
       selectedItems: [],
       actions,
-      ds: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}).cloneWithRows(this.getRows(actions, [])),
-      keyboardSpacing: 0
+      dataSet: this.getRows(actions, [])
     };
   }
 
-
-  _keyboardDidHide = () => {
-    this.setState({keyboardSpacing: 0})
-  }
-
-  _keyboardDidShow = (e) => {
-    this.setState({keyboardSpacing: e.endCoordinates.height})
-  }
-
-  componentWillReceiveProps(newProps) {
+  componentDidReceiveProps(newProps) {
     const actions = newProps.actions ? newProps.actions : defaultActions;
     this.setState({
       actions,
-      ds: this.state.ds.cloneWithRows(this.getRows(actions, this.state.selectedItems))
+      dataSet: this.getRows(actions, this.state.selectedItems)
     });
   }
 
   getRows(actions, selectedItems) {
-    return actions.map((action) => {return {action, selected: selectedItems.includes(action)};});
+    return actions.map((action) => { return { action, selected: selectedItems.includes(action) }; });
   }
 
   componentDidMount() {
@@ -82,20 +68,7 @@ export default class RichTextToolbar extends Component {
       throw new Error('Toolbar has no editor!');
     } else {
       editor.registerToolbar((selectedItems) => this.setSelectedItems(selectedItems));
-      this.setState({editor});
-      if (this.props.avoidKeyboard && Platform.OS !== "ios"){
-        this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this._keyboardDidShow);
-        this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this._keyboardDidHide);
-      }
-    }
-  }
-
-  componentWillUnmount() {
-    if (this.keyboardDidShowListener) {
-      this.keyboardDidShowListener.remove();
-    }
-    if (this.keyboardDidHideListener) {
-      this.keyboardDidHideListener.remove();
+      this.setState({ editor });
     }
   }
 
@@ -103,7 +76,7 @@ export default class RichTextToolbar extends Component {
     if (selectedItems !== this.state.selectedItems) {
       this.setState({
         selectedItems,
-        ds: this.state.ds.cloneWithRows(this.getRows(this.state.actions, selectedItems))
+        dataSet: this.getRows(this.state.actions, selectedItems)
       });
     }
   }
@@ -119,7 +92,7 @@ export default class RichTextToolbar extends Component {
   _getButtonIcon(action) {
     if (this.props.iconMap && this.props.iconMap[action]) {
       return this.props.iconMap[action];
-    } else if (getDefaultIcon()[action]){
+    } else if (getDefaultIcon()[action]) {
       return getDefaultIcon()[action];
     } else {
       return undefined;
@@ -130,49 +103,38 @@ export default class RichTextToolbar extends Component {
     const icon = this._getButtonIcon(action);
     return (
       <TouchableOpacity
-          key={action}
-          style={[
-            {height: 50, width: 50, justifyContent: 'center'},
-            selected ? this._getButtonSelectedStyle() : this._getButtonUnselectedStyle()
-          ]}
-          onPress={() => this._onPress(action)}
+        key={action}
+        style={[
+          { height: 50, width: 50, justifyContent: 'center' },
+          selected ? this._getButtonSelectedStyle() : this._getButtonUnselectedStyle()
+        ]}
+        onPress={() => this._onPress(action)}
       >
-        {icon ? <Image source={icon} style={{tintColor: selected ? this.props.selectedIconTint : this.props.iconTint}}/> : null}
+        {icon ? <Image source={icon} style={{ tintColor: selected ? this.props.selectedIconTint : this.props.iconTint }} /> : null}
       </TouchableOpacity>
     );
   }
 
   _renderAction(action, selected) {
     return this.props.renderAction ?
-        this.props.renderAction(action, selected) :
-        this._defaultRenderAction(action, selected);
+      this.props.renderAction(action, selected) :
+      this._defaultRenderAction(action, selected);
   }
 
   render() {
-    const { keyboardSpacing = 0 } = this.state
-    const { avoidKeyboard, keyboardOpened } = this.props
-    const rootStyles = [
-      { backgroundColor: '#D3D3D3', alignItems: 'center' },
-      (avoidKeyboard && Platform.OS !== "ios" && keyboardOpened) ? { marginBottom: keyboardSpacing - 50 } : {},
-      this.props.style
-    ]
     return (
-      <View
-          style={rootStyles}
-      >
-        <ListView
-            horizontal
-            removeClippedSubviews={false}
-            contentContainerStyle={{flexDirection: 'row'}}
-            dataSource={this.state.ds}
-            renderRow= {(row) => this._renderAction(row.action, row.selected)}
+      <View style={[{ height: 50, backgroundColor: '#D3D3D3', alignItems: 'center' }, this.props.style]}>
+        <FlatList
+          data={this.state.dataSet}
+          numColumns={this.state.actions.length}
+          renderItem={(item) => this._renderAction(item.item.action, item.item.selected)}
         />
       </View>
-    );
+    )
   }
 
   _onPress(action) {
-    switch(action) {
+    switch (action) {
       case actions.setBold:
       case actions.setItalic:
       case actions.insertBulletsList:
@@ -200,7 +162,7 @@ export default class RichTextToolbar extends Component {
         break;
       case actions.insertLink:
         this.state.editor.prepareInsert();
-        if(this.props.onPressAddLink) {
+        if (this.props.onPressAddLink) {
           this.props.onPressAddLink();
         } else {
           this.state.editor.getSelectedText().then(selectedText => {
@@ -210,9 +172,10 @@ export default class RichTextToolbar extends Component {
         break;
       case actions.insertImage:
         this.state.editor.prepareInsert();
-        if(this.props.onPressAddImage) {
+        if (this.props.onPressAddImage) {
           this.props.onPressAddImage();
         }
+        break;
         break;
     }
   }
