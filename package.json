@@ -9,7 +9,7 @@
   "main": "index.js",
   "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
-    "react-native-webview-bridge": "github:cj3g10/react-native-webview-bridge#master",
+    "react-native-webview-bridge": "github:alinz/react-native-webview-bridge#master",
     "lodash.isequal": "4.5.0"
   },
   "peerDependencies": {
