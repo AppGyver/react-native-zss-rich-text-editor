@@ -23,6 +23,7 @@ export const actions = {
   heading4: 'h4',
   heading5: 'h5',
   heading6: 'h6',
+  openCamera: 'openCamera',
   setParagraph: 'SET_PARAGRAPH',
   removeFormat: 'REMOVE_FORMAT',
   alignLeft: 'justifyLeft',
