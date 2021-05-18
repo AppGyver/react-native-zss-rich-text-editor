@@ -175,6 +175,11 @@ export default class RichTextToolbar extends Component {
         if (this.props.onPressAddImage) {
           this.props.onPressAddImage();
         }
+      case actions.openCamera:
+        this.state.editor.prepareInsert();
+        if (this.props.onPressOpenCamera) {
+          this.props.onPressOpenCamera();
+        }
         break;
         break;
     }
