@@ -126,7 +126,7 @@ export default class RichTextToolbar extends Component {
       <View style={[{ height: 50, backgroundColor: '#D3D3D3', alignItems: 'center' }, this.props.style]}>
         <FlatList
           data={this.state.dataSet}
-          numColumns={this.state.actions.length}
+          horizontal
           renderItem={(item) => this._renderAction(item.item.action, item.item.selected)}
         />
       </View>
